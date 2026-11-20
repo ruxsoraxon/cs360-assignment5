@@ -54,4 +54,45 @@ describe("TranscriptStore", () => {
     assert.deepEqual(store.getStudentIDs(), [firstID]);
     assert.throws(() => store.deleteStudent(secondID), /Student not found/);
   });
+
+  test("deleting a student also removes their grades", () => {
+    const studentID = store.addStudent("Ada");
+    store.addGrade(studentID, "CS360", 95);
+
+    store.deleteStudent(studentID);
+
+    assert.equal(store.getGrade(studentID, "CS360"), undefined);
+    assert.throws(() => store.getTranscript(studentID), /Student not found/);
+  });
+
+  test("rejects a second grade for the same course without replacing it", () => {
+    const studentID = store.addStudent("Lin");
+    store.addGrade(studentID, "CS360", 85);
+
+    assert.throws(
+      () => store.addGrade(studentID, "cs360", 92),
+      /Grade already exists for course CS360/,
+    );
+    assert.equal(store.getGrade(studentID, "CS360"), 85);
+    assert.equal(store.changeGrade(studentID, "CS360", 92).grade, 92);
+  });
+
+  test("name search trims whitespace and ignores case without changing display names", () => {
+    const studentID = store.addStudent("Grace Lee");
+
+    assert.deepEqual(store.getStudentIDs("  gRaCe lEe  "), [studentID]);
+    assert.equal(store.getTranscript(studentID).student.studentName, "Grace Lee");
+  });
+
+  test("uses shared course and grade validation for grade changes", () => {
+    const studentID = store.addStudent("Noah");
+    store.addGrade(studentID, "CS360", 80);
+
+    assert.throws(() => store.changeGrade(studentID, "  ", 90), /Course name is required/);
+    assert.throws(
+      () => store.changeGrade(studentID, "CS360", 101),
+      /Grade must be an integer from 0 to 100/,
+    );
+  });
+
 });
