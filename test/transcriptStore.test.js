@@ -64,4 +64,16 @@ describe("TranscriptStore", () => {
     assert.equal(store.getGrade(studentID, "CS360"), undefined);
     assert.throws(() => store.getTranscript(studentID), /Student not found/);
   });
+
+  test("rejects a second grade for the same course without replacing it", () => {
+    const studentID = store.addStudent("Lin");
+    store.addGrade(studentID, "CS360", 85);
+
+    assert.throws(
+      () => store.addGrade(studentID, "cs360", 92),
+      /Grade already exists for course CS360/,
+    );
+    assert.equal(store.getGrade(studentID, "CS360"), 85);
+    assert.equal(store.changeGrade(studentID, "CS360", 92).grade, 92);
+  });
 });
