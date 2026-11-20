@@ -83,4 +83,16 @@ describe("TranscriptStore", () => {
     assert.deepEqual(store.getStudentIDs("  gRaCe lEe  "), [studentID]);
     assert.equal(store.getTranscript(studentID).student.studentName, "Grace Lee");
   });
+
+  test("uses shared course and grade validation for grade changes", () => {
+    const studentID = store.addStudent("Noah");
+    store.addGrade(studentID, "CS360", 80);
+
+    assert.throws(() => store.changeGrade(studentID, "  ", 90), /Course name is required/);
+    assert.throws(
+      () => store.changeGrade(studentID, "CS360", 101),
+      /Grade must be an integer from 0 to 100/,
+    );
+  });
+
 });
